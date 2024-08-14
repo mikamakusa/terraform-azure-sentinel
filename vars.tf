@@ -1,3 +1,5 @@
+## DATASOURCE
+
 variable "resource_group_name" {
   type    = string
   default = null
@@ -43,8 +45,13 @@ variable "azurerm_sentinel_alert_rule_template_name" {
   default = null
 }
 
-variable "log_analytics_workspace" {
-  type = list(object({
+## LOG ANALYTICS
+
+variable "workspace" {
+  type        = any
+  default     = []
+  description = <<EOF
+workspace = [{
     id                                 = number
     name                               = string
     allow_resource_only_permissions    = optional(bool)
@@ -57,29 +64,34 @@ variable "log_analytics_workspace" {
     internet_query_enabled             = optional(bool)
     reservation_capacity_in_gb_per_day = optional(number)
     tags                               = optional(map(string))
-  }))
-  default = []
+}]
+EOF
 }
 
-variable "log_analytics_solution" {
-  type = list(object({
-    id                = number
-    solution_name     = string
-    workspace_id      = number
-    tags              = optional(map(string))
-    plan = optional(list(object({
+variable "solution" {
+  type        = any
+  default     = []
+  description = <<EOF
+solution = [{
+    id            = number
+    solution_name = string
+    workspace_id  = any
+    tags          = optional(map(string))
+    plan = list(object({
       product        = string
       publisher      = string
       promotion_code = optional(string)
-    })), [])
-  }))
-  default = []
+    }))
+}]
+EOF
 }
+
+## SENTINEL
 
 variable "sentinel_onboarding" {
   type = list(object({
     id                           = number
-    workspace_id                 = number
+    workspace_id                 = any
     customer_managed_key_enabled = optional(bool)
   }))
   default = []
@@ -89,7 +101,7 @@ variable "machine_learning_behavior_analytics" {
   type = list(object({
     id                       = number
     alert_rule_template_guid = string
-    workspace_id             = number
+    workspace_id             = any
     name                     = string
     enabled                  = optional(bool)
   }))
@@ -100,7 +112,7 @@ variable "alert_rule_anomaly" {
   type = list(object({
     id           = number
     enabled      = bool
-    workspace_id = number
+    workspace_id = any
     mode         = string
     name         = optional(string)
     display_name = optional(string)
@@ -111,10 +123,10 @@ variable "alert_rule_anomaly" {
 variable "alert_rule_anomaly_duplicate" {
   type = list(object({
     id               = number
-    built_in_rule_id = number
+    built_in_rule_id = any
     display_name     = string
     enabled          = bool
-    workspace_id     = number
+    workspace_id     = any
     mode             = string
     multi_select_observation = optional(list(object({
       name   = string
@@ -140,7 +152,7 @@ variable "alert_rule_anomaly_duplicate" {
 variable "alert_rule_fusion" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
     enabled      = optional(bool)
     source = optional(list(object({
@@ -160,7 +172,7 @@ variable "ms_security_incident" {
   type = list(object({
     id                          = number
     display_name                = string
-    workspace_id                = string
+    workspace_id                = any
     name                        = string
     product_filter              = string
     severity_filter             = list(string)
@@ -176,7 +188,7 @@ variable "alert_rule_nrt" {
   type = list(object({
     id                                  = number
     display_name                        = string
-    workspace_id                        = number
+    workspace_id                        = any
     name                                = string
     query                               = string
     severity                            = string
@@ -227,7 +239,7 @@ variable "alert_rule_scheduled" {
   type = list(object({
     id                                  = number
     display_name                        = string
-    workspace_id                        = number
+    workspace_id                        = any
     name                                = string
     query                               = string
     severity                            = string
@@ -276,10 +288,11 @@ variable "alert_rule_scheduled" {
 
 variable "alert_rule_threat_intelligence" {
   type = list(object({
-    id           = number
-    workspace_id = number
-    name         = string
-    enabled      = optional(bool)
+    id                       = number
+    workspace_id             = any
+    alert_rule_template_guid = any
+    name                     = string
+    enabled                  = optional(bool)
   }))
   default = []
 }
@@ -288,7 +301,7 @@ variable "automation_rule" {
   type = list(object({
     id             = number
     display_name   = string
-    workspace_id   = number
+    workspace_id   = any
     name           = string
     order          = number
     condition_json = optional(string)
@@ -318,7 +331,7 @@ variable "data_connector_cloud_trail" {
   type = list(object({
     id           = number
     aws_role_arn = string
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -329,7 +342,7 @@ variable "data_connector_s3" {
     id                = number
     aws_role_arn      = string
     destination_table = string
-    workspace_id      = number
+    workspace_id      = any
     name              = string
     sqs_urls          = list(string)
   }))
@@ -339,7 +352,7 @@ variable "data_connector_s3" {
 variable "data_connect_aad" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -348,7 +361,7 @@ variable "data_connect_aad" {
 variable "data_connector_azure_security_center" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -357,7 +370,7 @@ variable "data_connector_azure_security_center" {
 variable "data_connector_iot" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -366,7 +379,7 @@ variable "data_connector_iot" {
 variable "data_connector_cloud_app_security" {
   type = list(object({
     id                     = number
-    workspace_id           = number
+    workspace_id           = any
     name                   = string
     alerts_enabled         = optional(bool)
     discovery_logs_enabled = optional(bool)
@@ -377,7 +390,7 @@ variable "data_connector_cloud_app_security" {
 variable "data_connector_dynamics_365" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -386,7 +399,7 @@ variable "data_connector_dynamics_365" {
 variable "data_connector_defender_advanced_threat_protection" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -395,7 +408,7 @@ variable "data_connector_defender_advanced_threat_protection" {
 variable "data_connector_azure_advanced_threat_protection" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -404,7 +417,7 @@ variable "data_connector_azure_advanced_threat_protection" {
 variable "data_connector_azure_advanced_threat_intelligence" {
   type = list(object({
     id                                           = number
-    workspace_id                                 = number
+    workspace_id                                 = any
     name                                         = string
     microsoft_emerging_threat_feed_lookback_date = optional(string)
   }))
@@ -414,7 +427,7 @@ variable "data_connector_azure_advanced_threat_intelligence" {
 variable "data_connector_microsoft_threat_protection" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -423,7 +436,7 @@ variable "data_connector_microsoft_threat_protection" {
 variable "data_connector_office_365" {
   type = list(object({
     id                 = number
-    workspace_id       = number
+    workspace_id       = any
     name               = string
     teams_enabled      = optional(bool)
     sharepoint_enabled = optional(bool)
@@ -435,7 +448,7 @@ variable "data_connector_office_365" {
 variable "data_connector_office_365_project" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -444,7 +457,7 @@ variable "data_connector_office_365_project" {
 variable "data_connector_office_atp" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -453,7 +466,7 @@ variable "data_connector_office_atp" {
 variable "data_connector_office_irm" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -462,7 +475,7 @@ variable "data_connector_office_irm" {
 variable "data_connector_office_power_bi" {
   type = list(object({
     id           = number
-    workspace_id = number
+    workspace_id = any
     name         = string
   }))
   default = []
@@ -471,7 +484,7 @@ variable "data_connector_office_power_bi" {
 variable "data_connector_threat_intelligence_taxii" {
   type = list(object({
     id                = number
-    workspace_id      = number
+    workspace_id      = any
     name              = string
     api_root_url      = string
     collection_id     = string
@@ -487,10 +500,10 @@ variable "data_connector_threat_intelligence_taxii" {
 variable "sentinel_metadata" {
   type = list(object({
     id                         = number
-    alert_id                   = number
+    alert_id                   = any
     kind                       = string
     name                       = string
-    workspace_id               = number
+    workspace_id               = any
     content_schema_version     = optional(string)
     custom_version             = optional(string)
     dependency                 = optional(string)
@@ -534,7 +547,7 @@ variable "threat_intelligence_indicator" {
     pattern_type          = string
     source                = string
     validate_from_utc     = string
-    workspace_id          = number
+    workspace_id          = any
     confidence            = optional(number)
     created_by            = optional(string)
     description           = optional(string)
@@ -567,7 +580,7 @@ variable "sentinel_watchlist" {
     id               = number
     display_name     = string
     item_search_key  = string
-    workspace_id     = number
+    workspace_id     = any
     name             = string
     default_duration = optional(string)
     description      = optional(string)
@@ -580,7 +593,7 @@ variable "watchlist_items" {
   type = list(object({
     id           = number
     properties   = map(string)
-    watchlist_id = number
+    watchlist_id = any
     name         = optional(string)
   }))
   default = []
