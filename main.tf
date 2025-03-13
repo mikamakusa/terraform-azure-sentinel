@@ -84,7 +84,6 @@ resource "azurerm_sentinel_alert_rule_fusion" "this" {
     data.azurerm_log_analytics_workspace.this.id,
     element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_fusion[count.index], "workspace_id"))
   )
-  name    = lookup(var.alert_rule_fusion[count.index], "name")
   enabled = lookup(var.alert_rule_fusion[count.index], "enabled")
 
   dynamic "source" {

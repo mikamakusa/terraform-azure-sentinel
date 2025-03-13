@@ -153,7 +153,6 @@ variable "alert_rule_fusion" {
   type = list(object({
     id           = number
     workspace_id = any
-    name         = string
     enabled      = optional(bool)
     source = optional(list(object({
       name    = string
