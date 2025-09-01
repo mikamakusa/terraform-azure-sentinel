@@ -1,50 +1,36 @@
 resource "azurerm_sentinel_log_analytics_workspace_onboarding" "this" {
-  count = length(var.sentinel_onboarding)
-  workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.sentinel_onboarding[count.index], "workspace_id"))
-  )
+  count                        = length(var.sentinel_onboarding)
+  workspace_id                 = data.azurerm_log_analytics_workspace.this.id
   customer_managed_key_enabled = lookup(var.sentinel_onboarding[count.index], "customer_managed_key_enabled")
 }
 
 resource "azurerm_sentinel_alert_rule_machine_learning_behavior_analytics" "this" {
-  count                    = length(var.machine_learning_behavior_analytics)
-  alert_rule_template_guid = lookup(var.machine_learning_behavior_analytics[count.index], "alert_rule_template_guid")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.machine_learning_behavior_analytics[count.index], "workspace_id"))
-  )
-  name    = lookup(var.machine_learning_behavior_analytics[count.index], "name")
-  enabled = lookup(var.machine_learning_behavior_analytics[count.index], "enabled")
+  count                      = length(var.machine_learning_behavior_analytics)
+  alert_rule_template_guid   = lookup(var.machine_learning_behavior_analytics[count.index], "alert_rule_template_guid")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.machine_learning_behavior_analytics[count.index], "name")
+  enabled                    = lookup(var.machine_learning_behavior_analytics[count.index], "enabled")
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_built_in" "this" {
-  count   = length(var.alert_rule_anomaly)
-  enabled = lookup(var.alert_rule_anomaly[count.index], "enabled")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_anomaly[count.index], "workspace_id"))
-  )
-  mode         = lookup(var.alert_rule_anomaly[count.index], "mode")
-  name         = lookup(var.alert_rule_anomaly[count.index], "name")
-  display_name = lookup(var.alert_rule_anomaly[count.index], "display_name")
+  count                      = length(var.alert_rule_anomaly)
+  enabled                    = lookup(var.alert_rule_anomaly[count.index], "enabled")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  mode                       = lookup(var.alert_rule_anomaly[count.index], "mode")
+  name                       = lookup(var.alert_rule_anomaly[count.index], "name")
+  display_name               = lookup(var.alert_rule_anomaly[count.index], "display_name")
 }
 
 resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "this" {
-  count = length(var.alert_rule_anomaly_duplicate)
-  built_in_rule_id = try(
-    element(azurerm_sentinel_alert_rule_anomaly_built_in.this.*.id, lookup(var.alert_rule_anomaly_duplicate[count.index], "built_in_rule_id"))
-  )
-  display_name = lookup(var.alert_rule_anomaly_duplicate[count.index], "display_name")
-  enabled      = lookup(var.alert_rule_anomaly_duplicate[count.index], "enabled")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_anomaly_duplicate[count.index], "workspace_id"))
-  )
-  mode = lookup(var.alert_rule_anomaly_duplicate[count.index], "mode")
+  count                      = length(var.alert_rule_anomaly_duplicate)
+  built_in_rule_id           = element(azurerm_sentinel_alert_rule_anomaly_built_in.this.*.id, lookup(var.alert_rule_anomaly_duplicate[count.index], "built_in_rule_id"))
+  display_name               = lookup(var.alert_rule_anomaly_duplicate[count.index], "display_name")
+  enabled                    = lookup(var.alert_rule_anomaly_duplicate[count.index], "enabled")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  mode                       = lookup(var.alert_rule_anomaly_duplicate[count.index], "mode")
 
   dynamic "multi_select_observation" {
-    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "multi_select_observation") == null ? [] : ["multi_select_observation"]
+    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "multi_select_observation") == null ? [] : [""]
     content {
       name   = lookup(multi_select_observation.value, "name")
       values = lookup(multi_select_observation.value, "values")
@@ -52,7 +38,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "this" {
   }
 
   dynamic "prioritized_exclude_observation" {
-    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "prioritized_exclude_observation") == null ? [] : ["prioritized_exclude_observation"]
+    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "prioritized_exclude_observation") == null ? [] : [""]
     content {
       name       = lookup(prioritized_exclude_observation.value, "name")
       exclude    = lookup(prioritized_exclude_observation.value, "exclude")
@@ -61,7 +47,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "this" {
   }
 
   dynamic "single_select_observation" {
-    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "single_select_observation") == null ? [] : ["single_select_observation"]
+    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "single_select_observation") == null ? [] : [""]
     content {
       name  = lookup(single_select_observation.value, "name")
       value = lookup(single_select_observation.value, "value")
@@ -69,7 +55,7 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "this" {
   }
 
   dynamic "threshold_observation" {
-    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "threshold_observation") == null ? [] : ["threshold_observation"]
+    for_each = lookup(var.alert_rule_anomaly_duplicate[count.index], "threshold_observation") == null ? [] : [""]
     content {
       name  = lookup(threshold_observation.value, "name")
       value = lookup(threshold_observation.value, "value")
@@ -78,22 +64,19 @@ resource "azurerm_sentinel_alert_rule_anomaly_duplicate" "this" {
 }
 
 resource "azurerm_sentinel_alert_rule_fusion" "this" {
-  count                    = length(var.alert_rule_fusion)
-  alert_rule_template_guid = data.azurerm_sentinel_alert_rule_template.this.id
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_fusion[count.index], "workspace_id"))
-  )
-  enabled = lookup(var.alert_rule_fusion[count.index], "enabled")
+  count                      = length(var.alert_rule_fusion)
+  alert_rule_template_guid   = data.azurerm_sentinel_alert_rule_template.this.id
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  enabled                    = lookup(var.alert_rule_fusion[count.index], "enabled")
 
   dynamic "source" {
-    for_each = lookup(var.alert_rule_fusion[count.index], "source") == null ? [] : ["source"]
+    for_each = lookup(var.alert_rule_fusion[count.index], "source") == null ? [] : [""]
     content {
       name    = lookup(source.value, "name")
       enabled = lookup(source.value, "enabled")
 
       dynamic "sub_type" {
-        for_each = lookup(source.value, "sub_type") == null ? [] : ["sub_type"]
+        for_each = lookup(source.value, "sub_type") == null ? [] : [""]
         content {
           name               = lookup(sub_type.value, "name")
           severities_allowed = lookup(sub_type.value, "severities_allowed")
@@ -105,12 +88,9 @@ resource "azurerm_sentinel_alert_rule_fusion" "this" {
 }
 
 resource "azurerm_sentinel_alert_rule_ms_security_incident" "this" {
-  count        = length(var.ms_security_incident)
-  display_name = lookup(var.ms_security_incident[count.index], "display_name")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.ms_security_incident[count.index], "workspace_id"))
-  )
+  count                       = length(var.ms_security_incident)
+  display_name                = lookup(var.ms_security_incident[count.index], "display_name")
+  log_analytics_workspace_id  = data.azurerm_log_analytics_workspace.this.id
   name                        = lookup(var.ms_security_incident[count.index], "name")
   product_filter              = lookup(var.ms_security_incident[count.index], "product_filter")
   severity_filter             = lookup(var.ms_security_incident[count.index], "severity_filter")
@@ -122,12 +102,9 @@ resource "azurerm_sentinel_alert_rule_ms_security_incident" "this" {
 }
 
 resource "azurerm_sentinel_alert_rule_nrt" "this" {
-  count        = length(var.alert_rule_nrt)
-  display_name = lookup(var.alert_rule_nrt[count.index], "display_name")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_nrt[count.index], "workspace_id"))
-  )
+  count                       = length(var.alert_rule_nrt)
+  display_name                = lookup(var.alert_rule_nrt[count.index], "display_name")
+  log_analytics_workspace_id  = data.azurerm_log_analytics_workspace.this.id
   name                        = lookup(var.alert_rule_nrt[count.index], "name")
   query                       = lookup(var.alert_rule_nrt[count.index], "query")
   severity                    = lookup(var.alert_rule_nrt[count.index], "severity")
@@ -142,7 +119,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
   techniques                  = lookup(var.alert_rule_nrt[count.index], "techniques")
 
   dynamic "alert_details_override" {
-    for_each = lookup(var.alert_rule_nrt[count.index], "alert_details_override") == null ? [] : ["alert_details_override"]
+    for_each = lookup(var.alert_rule_nrt[count.index], "alert_details_override") == null ? [] : [""]
     content {
       description_format   = lookup(alert_details_override.value, "description_format")
       display_name_format  = lookup(alert_details_override.value, "display_name_format")
@@ -150,7 +127,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
       tactics_column_name  = lookup(alert_details_override.value, "tactics_column_name")
 
       dynamic "dynamic_property" {
-        for_each = lookup(alert_details_override.value, "dynamic_property") == null ? [] : ["dynamic_property"]
+        for_each = lookup(alert_details_override.value, "dynamic_property") == null ? [] : [""]
         content {
           name  = lookup(dynamic_property.value, "name")
           value = lookup(dynamic_property.value, "value")
@@ -160,12 +137,12 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
   }
 
   dynamic "entity_mapping" {
-    for_each = lookup(var.alert_rule_nrt[count.index], "entity_mapping") == null ? [] : ["entity_mapping"]
+    for_each = lookup(var.alert_rule_nrt[count.index], "entity_mapping") == null ? [] : [""]
     content {
       entity_type = lookup(entity_mapping.value, "entity_type")
 
       dynamic "field_mapping" {
-        for_each = lookup(entity_mapping.value, "field_mapping") == null ? [] : ["field_mapping"]
+        for_each = lookup(entity_mapping.value, "field_mapping") == null ? [] : [""]
         content {
           column_name = lookup(field_mapping.value, "column_name")
           identifier  = lookup(field_mapping.value, "identifier")
@@ -175,14 +152,14 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
   }
 
   dynamic "event_grouping" {
-    for_each = lookup(var.alert_rule_nrt[count.index], "event_grouping_aggregation_method") == null ? [] : ["event_grouping"]
+    for_each = lookup(var.alert_rule_nrt[count.index], "event_grouping_aggregation_method") == null ? [] : [""]
     content {
       aggregation_method = lookup(event_grouping.value, "event_grouping_aggregation_method")
     }
   }
 
   dynamic "incident" {
-    for_each = lookup(var.alert_rule_nrt[count.index], "incident") == null ? [] : ["incident"]
+    for_each = lookup(var.alert_rule_nrt[count.index], "incident") == null ? [] : [""]
     content {
       create_incident_enabled = lookup(incident.value, "create_incident_enabled")
 
@@ -202,7 +179,7 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
   }
 
   dynamic "sentinel_entity_mapping" {
-    for_each = lookup(var.alert_rule_nrt[count.index], "sentinel_entity_mapping_column_name") == null ? [] : ["sentinel_entity_mapping"]
+    for_each = lookup(var.alert_rule_nrt[count.index], "sentinel_entity_mapping_column_name") == null ? [] : [""]
     content {
       column_name = lookup(sentinel_entity_mapping.value, "sentinel_entity_mapping_column_name")
     }
@@ -210,12 +187,9 @@ resource "azurerm_sentinel_alert_rule_nrt" "this" {
 }
 
 resource "azurerm_sentinel_alert_rule_scheduled" "this" {
-  count        = length(var.alert_rule_scheduled)
-  display_name = lookup(var.alert_rule_scheduled[count.index], "display_name")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_scheduled[count.index], "workspace_id"))
-  )
+  count                       = length(var.alert_rule_scheduled)
+  display_name                = lookup(var.alert_rule_scheduled[count.index], "display_name")
+  log_analytics_workspace_id  = data.azurerm_log_analytics_workspace.this.id
   name                        = lookup(var.alert_rule_scheduled[count.index], "name")
   query                       = lookup(var.alert_rule_scheduled[count.index], "query")
   severity                    = lookup(var.alert_rule_scheduled[count.index], "severity")
@@ -228,9 +202,11 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
   suppression_enabled         = lookup(var.alert_rule_scheduled[count.index], "suppression_enabled")
   tactics                     = lookup(var.alert_rule_scheduled[count.index], "tactics")
   techniques                  = lookup(var.alert_rule_scheduled[count.index], "techniques")
+  trigger_operator            = lookup(var.alert_rule_scheduled[count.index], "trigger_operator")
+  trigger_threshold           = lookup(var.alert_rule_scheduled[count.index], "trigger_threshold")
 
   dynamic "alert_details_override" {
-    for_each = lookup(var.alert_rule_scheduled[count.index], "alert_details_override") == null ? [] : ["alert_details_override"]
+    for_each = lookup(var.alert_rule_scheduled[count.index], "alert_details_override") == null ? [] : [""]
     content {
       description_format   = lookup(alert_details_override.value, "description_format")
       display_name_format  = lookup(alert_details_override.value, "display_name_format")
@@ -238,7 +214,7 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
       tactics_column_name  = lookup(alert_details_override.value, "tactics_column_name")
 
       dynamic "dynamic_property" {
-        for_each = lookup(alert_details_override.value, "dynamic_property") == null ? [] : ["dynamic_property"]
+        for_each = lookup(alert_details_override.value, "dynamic_property") == null ? [] : [""]
         content {
           name  = lookup(dynamic_property.value, "name")
           value = lookup(dynamic_property.value, "value")
@@ -248,12 +224,12 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
   }
 
   dynamic "entity_mapping" {
-    for_each = lookup(var.alert_rule_scheduled[count.index], "entity_mapping") == null ? [] : ["entity_mapping"]
+    for_each = lookup(var.alert_rule_scheduled[count.index], "entity_mapping") == null ? [] : [""]
     content {
       entity_type = lookup(entity_mapping.value, "entity_type")
 
       dynamic "field_mapping" {
-        for_each = lookup(entity_mapping.value, "field_mapping") == null ? [] : ["field_mapping"]
+        for_each = lookup(entity_mapping.value, "field_mapping") == null ? [] : [""]
         content {
           column_name = lookup(field_mapping.value, "column_name")
           identifier  = lookup(field_mapping.value, "identifier")
@@ -263,14 +239,14 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
   }
 
   dynamic "event_grouping" {
-    for_each = lookup(var.alert_rule_scheduled[count.index], "event_grouping_aggregation_method") == null ? [] : ["event_grouping"]
+    for_each = lookup(var.alert_rule_scheduled[count.index], "event_grouping_aggregation_method") == null ? [] : [""]
     content {
       aggregation_method = lookup(event_grouping.value, "event_grouping_aggregation_method")
     }
   }
 
   dynamic "incident" {
-    for_each = lookup(var.alert_rule_scheduled[count.index], "incident") == null ? [] : ["incident"]
+    for_each = lookup(var.alert_rule_scheduled[count.index], "incident") == null ? [] : [""]
     content {
       create_incident_enabled = lookup(incident.value, "create_incident_enabled")
 
@@ -290,7 +266,7 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
   }
 
   dynamic "sentinel_entity_mapping" {
-    for_each = lookup(var.alert_rule_scheduled[count.index], "sentinel_entity_mapping_column_name") == null ? [] : ["sentinel_entity_mapping"]
+    for_each = lookup(var.alert_rule_scheduled[count.index], "sentinel_entity_mapping_column_name") == null ? [] : [""]
     content {
       column_name = lookup(sentinel_entity_mapping.value, "sentinel_entity_mapping_column_name")
     }
@@ -298,33 +274,27 @@ resource "azurerm_sentinel_alert_rule_scheduled" "this" {
 }
 
 resource "azurerm_sentinel_alert_rule_threat_intelligence" "this" {
-  count                    = length(var.alert_rule_threat_intelligence)
-  alert_rule_template_guid = try(element(azurerm_sentinel_alert_rule_anomaly_built_in.this.*.id, lookup(var.alert_rule_threat_intelligence[count.index], "alert_rule_template_guid")))
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.alert_rule_threat_intelligence[count.index], "workspace_id"))
-  )
-  name    = lookup(var.alert_rule_threat_intelligence[count.index], "name")
-  enabled = lookup(var.alert_rule_threat_intelligence[count.index], "enabled")
+  count                      = length(var.alert_rule_threat_intelligence)
+  alert_rule_template_guid   = element(azurerm_sentinel_alert_rule_anomaly_built_in.this.*.id, lookup(var.alert_rule_threat_intelligence[count.index], "alert_rule_template_guid"))
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.alert_rule_threat_intelligence[count.index], "name")
+  enabled                    = lookup(var.alert_rule_threat_intelligence[count.index], "enabled")
 }
 
 resource "azurerm_sentinel_automation_rule" "this" {
-  count        = length(var.automation_rule)
-  display_name = lookup(var.automation_rule[count.index], "display_name")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.automation_rule[count.index], "workspace_id"))
-  )
-  name           = lookup(var.automation_rule[count.index], "name")
-  order          = lookup(var.automation_rule[count.index], "order")
-  condition_json = lookup(var.automation_rule[count.index], "condition_json")
-  enabled        = lookup(var.automation_rule[count.index], "enabled")
-  expiration     = lookup(var.automation_rule[count.index], "expiration")
-  triggers_on    = lookup(var.automation_rule[count.index], "triggers_on")
-  triggers_when  = lookup(var.automation_rule[count.index], "triggers_when")
+  count                      = length(var.automation_rule)
+  display_name               = lookup(var.automation_rule[count.index], "display_name")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.automation_rule[count.index], "name")
+  order                      = lookup(var.automation_rule[count.index], "order")
+  condition_json             = lookup(var.automation_rule[count.index], "condition_json")
+  enabled                    = lookup(var.automation_rule[count.index], "enabled")
+  expiration                 = lookup(var.automation_rule[count.index], "expiration")
+  triggers_on                = lookup(var.automation_rule[count.index], "triggers_on")
+  triggers_when              = lookup(var.automation_rule[count.index], "triggers_when")
 
   dynamic "action_incident" {
-    for_each = lookup(var.automation_rule[count.index], "action_incident") == null ? [] : ["action_incident"]
+    for_each = lookup(var.automation_rule[count.index], "action_incident") == null ? [] : [""]
     content {
       order                  = lookup(action_incident.value, "order")
       status                 = lookup(action_incident.value, "status")
@@ -337,7 +307,7 @@ resource "azurerm_sentinel_automation_rule" "this" {
   }
 
   dynamic "action_playbook" {
-    for_each = lookup(var.automation_rule[count.index], "action_playbook") == null ? [] : ["action_playbook"]
+    for_each = lookup(var.automation_rule[count.index], "action_playbook") == null ? [] : [""]
     content {
       logic_app_id = try(
         data.azurerm_logic_app_standard.this.id,
@@ -350,200 +320,146 @@ resource "azurerm_sentinel_automation_rule" "this" {
 }
 
 resource "azurerm_sentinel_data_connector_aws_cloud_trail" "this" {
-  count        = length(length(var.data_connector_cloud_trail))
-  aws_role_arn = lookup(var.data_connector_cloud_trail[count.index], "aws_role_arn")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_cloud_trail[count.index], "workspace_id"))
-  )
-  name = lookup(var.data_connector_cloud_trail[count.index], "name")
+  count                      = length(var.data_connector_cloud_trail)
+  aws_role_arn               = lookup(var.data_connector_cloud_trail[count.index], "aws_role_arn")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_cloud_trail[count.index], "name")
 }
 
 resource "azurerm_sentinel_data_connector_aws_s3" "this" {
-  count             = length(var.data_connector_s3)
-  aws_role_arn      = lookup(var.data_connector_s3[count.index], "aws_role_arn")
-  destination_table = lookup(var.data_connector_s3[count.index], "destination_table")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_s3[count.index], "workspace_id"))
-  )
-  name     = lookup(var.data_connector_s3[count.index], "name")
-  sqs_urls = lookup(var.data_connector_s3[count.index], "sqs_urls")
+  count                      = length(var.data_connector_s3)
+  aws_role_arn               = lookup(var.data_connector_s3[count.index], "aws_role_arn")
+  destination_table          = lookup(var.data_connector_s3[count.index], "destination_table")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_s3[count.index], "name")
+  sqs_urls                   = lookup(var.data_connector_s3[count.index], "sqs_urls")
 }
 
 resource "azurerm_sentinel_data_connector_azure_active_directory" "this" {
-  count = length(var.data_connect_aad)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connect_aad[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connect_aad[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connect_aad)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connect_aad[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_azure_security_center" "this" {
-  count = length(var.data_connector_azure_security_center)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_azure_security_center[count.index], "workspace_id"))
-  )
-  name            = lookup(var.data_connector_azure_security_center[count.index], "name")
-  subscription_id = try(data.azurerm_subscription.this.id)
+  count                      = length(var.data_connector_azure_security_center)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_azure_security_center[count.index], "name")
+  subscription_id            = try(data.azurerm_subscription.this.id)
 }
 
 resource "azurerm_sentinel_data_connector_iot" "this" {
-  count = length(var.data_connector_iot)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_iot[count.index], "workspace_id"))
-  )
-  name            = lookup(var.data_connector_iot[count.index], "name")
-  subscription_id = try(data.azurerm_subscription.this.id)
+  count                      = length(var.data_connector_iot)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_iot[count.index], "name")
+  subscription_id            = try(data.azurerm_subscription.this.id)
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_cloud_app_security" "this" {
-  count = length(var.data_connector_cloud_app_security)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_cloud_app_security[count.index], "workspace_id"))
-  )
-  name                   = lookup(var.data_connector_cloud_app_security[count.index], "name")
-  alerts_enabled         = lookup(var.data_connector_cloud_app_security[count.index], "alerts_enabled")
-  discovery_logs_enabled = lookup(var.data_connector_cloud_app_security[count.index], "discovery_logs_enabled")
-  tenant_id              = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_cloud_app_security)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_cloud_app_security[count.index], "name")
+  alerts_enabled             = lookup(var.data_connector_cloud_app_security[count.index], "alerts_enabled")
+  discovery_logs_enabled     = lookup(var.data_connector_cloud_app_security[count.index], "discovery_logs_enabled")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_dynamics_365" "this" {
-  count = length(var.data_connector_dynamics_365)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_dynamics_365[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_dynamics_365[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_dynamics_365)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_dynamics_365[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_defender_advanced_threat_protection" "this" {
-  count = length(var.data_connector_defender_advanced_threat_protection)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_defender_advanced_threat_protection[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_defender_advanced_threat_protection[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_defender_advanced_threat_protection)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_defender_advanced_threat_protection[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_azure_advanced_threat_protection" "this" {
-  count = length(var.data_connector_azure_advanced_threat_protection)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_azure_advanced_threat_protection[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_azure_advanced_threat_protection[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_azure_advanced_threat_protection)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_azure_advanced_threat_protection[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_intelligence" "this" {
-  count = length(var.data_connector_azure_advanced_threat_intelligence)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_azure_advanced_threat_intelligence[count.index], "workspace_id"))
-  )
+  count                                        = length(var.data_connector_azure_advanced_threat_intelligence)
+  log_analytics_workspace_id                   = data.azurerm_log_analytics_workspace.this.id
   name                                         = lookup(var.data_connector_azure_advanced_threat_intelligence[count.index], "name")
   microsoft_emerging_threat_feed_lookback_date = timestamp()
   tenant_id                                    = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_microsoft_threat_protection" "this" {
-  count = length(var.data_connector_microsoft_threat_protection)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_microsoft_threat_protection[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_microsoft_threat_protection[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_microsoft_threat_protection)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_microsoft_threat_protection[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_office_365" "this" {
-  count = length(var.data_connector_office_365)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_office_365[count.index], "workspace_id"))
-  )
-  name               = lookup(var.data_connector_office_365[count.index], "name")
-  teams_enabled      = lookup(var.data_connector_office_365[count.index], "teams_enabled")
-  sharepoint_enabled = lookup(var.data_connector_office_365[count.index], "sharepoint_enabled")
-  exchange_enabled   = lookup(var.data_connector_office_365[count.index], "exchange_enabled")
-  tenant_id          = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_office_365)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_office_365[count.index], "name")
+  teams_enabled              = lookup(var.data_connector_office_365[count.index], "teams_enabled")
+  sharepoint_enabled         = lookup(var.data_connector_office_365[count.index], "sharepoint_enabled")
+  exchange_enabled           = lookup(var.data_connector_office_365[count.index], "exchange_enabled")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_office_365_project" "this" {
-  count = length(var.data_connector_office_365_project)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_office_365_project[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_office_365_project[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_office_365_project)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_office_365_project[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_office_atp" "this" {
-  count = length(var.data_connector_office_atp)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_office_atp[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_office_atp[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_office_atp)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_office_atp[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_office_irm" "this" {
-  count = length(var.data_connector_office_irm)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_office_irm[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_office_irm[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_office_irm)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_office_irm[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_office_power_bi" "this" {
-  count = length(var.data_connector_office_power_bi)
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_office_power_bi[count.index], "workspace_id"))
-  )
-  name      = lookup(var.data_connector_office_power_bi[count.index], "name")
-  tenant_id = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_office_power_bi)
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_office_power_bi[count.index], "name")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_data_connector_threat_intelligence_taxii" "this" {
-  count         = length(var.data_connector_threat_intelligence_taxii)
-  api_root_url  = lookup(var.data_connector_threat_intelligence_taxii[count.index], "api_root_url")
-  collection_id = lookup(var.data_connector_threat_intelligence_taxii[count.index], "collection_id")
-  display_name  = lookup(var.data_connector_threat_intelligence_taxii[count.index], "display_name")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_threat_intelligence_taxii[count.index], "workspace_id"))
-  )
-  name              = lookup(var.data_connector_threat_intelligence_taxii[count.index], "name")
-  user_name         = lookup(var.data_connector_threat_intelligence_taxii[count.index], "user_name")
-  password          = sensitive(lookup(var.data_connector_threat_intelligence_taxii[count.index], "password"))
-  polling_frequency = lookup(var.data_connector_threat_intelligence_taxii[count.index], "polling_frequency")
-  lookback_date     = lookup(var.data_connector_threat_intelligence_taxii[count.index], "lookback_date")
-  tenant_id         = try(data.azurerm_subscription.this.tenant_id)
+  count                      = length(var.data_connector_threat_intelligence_taxii)
+  api_root_url               = lookup(var.data_connector_threat_intelligence_taxii[count.index], "api_root_url")
+  collection_id              = lookup(var.data_connector_threat_intelligence_taxii[count.index], "collection_id")
+  display_name               = lookup(var.data_connector_threat_intelligence_taxii[count.index], "display_name")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.data_connector_threat_intelligence_taxii[count.index], "name")
+  user_name                  = lookup(var.data_connector_threat_intelligence_taxii[count.index], "user_name")
+  password                   = sensitive(lookup(var.data_connector_threat_intelligence_taxii[count.index], "password"))
+  polling_frequency          = lookup(var.data_connector_threat_intelligence_taxii[count.index], "polling_frequency")
+  lookback_date              = lookup(var.data_connector_threat_intelligence_taxii[count.index], "lookback_date")
+  tenant_id                  = try(data.azurerm_subscription.this.tenant_id)
 }
 
 resource "azurerm_sentinel_metadata" "this" {
-  count      = length(var.sentinel_metadata)
-  content_id = element(local.content_id, lookup(var.sentinel_metadata[count.index], "alert_id"))
-  kind       = lookup(var.sentinel_metadata[count.index], "kind")
-  name       = lookup(var.sentinel_metadata[count.index], "name")
-  parent_id  = element(local.parent_id, lookup(var.sentinel_metadata[count.index], "alert_id"))
-  workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.data_connector_threat_intelligence_taxii[count.index], "workspace_id"))
-  )
+  count                      = length(var.sentinel_metadata)
+  content_id                 = element(local.content_id, lookup(var.sentinel_metadata[count.index], "alert_id"))
+  kind                       = lookup(var.sentinel_metadata[count.index], "kind")
+  name                       = lookup(var.sentinel_metadata[count.index], "name")
+  parent_id                  = element(local.parent_id, lookup(var.sentinel_metadata[count.index], "alert_id"))
+  workspace_id               = data.azurerm_log_analytics_workspace.this.id
   content_schema_version     = lookup(var.sentinel_metadata[count.index], "content_schema_version")
   custom_version             = lookup(var.sentinel_metadata[count.index], "custom_version")
   dependency                 = lookup(var.sentinel_metadata[count.index], "dependency")
@@ -557,7 +473,7 @@ resource "azurerm_sentinel_metadata" "this" {
   threat_analysis_techniques = lookup(var.sentinel_metadata[count.index], "threat_analysis_techniques")
 
   dynamic "source" {
-    for_each = lookup(var.sentinel_metadata[count.index], "source") == null ? [] : ["source"]
+    for_each = lookup(var.sentinel_metadata[count.index], "source") == null ? [] : [""]
     content {
       kind = lookup(source.value, "kind")
       name = lookup(source.value, "name")
@@ -566,7 +482,7 @@ resource "azurerm_sentinel_metadata" "this" {
   }
 
   dynamic "support" {
-    for_each = lookup(var.sentinel_metadata[count.index], "support") == null ? [] : ["support"]
+    for_each = lookup(var.sentinel_metadata[count.index], "support") == null ? [] : [""]
     content {
       tier  = lookup(support.value, "tier")
       email = lookup(support.value, "email")
@@ -576,7 +492,7 @@ resource "azurerm_sentinel_metadata" "this" {
   }
 
   dynamic "author" {
-    for_each = lookup(var.sentinel_metadata[count.index], "author") == null ? [] : ["author"]
+    for_each = lookup(var.sentinel_metadata[count.index], "author") == null ? [] : [""]
     content {
       name  = lookup(author.value, "name")
       email = lookup(author.value, "email")
@@ -585,7 +501,7 @@ resource "azurerm_sentinel_metadata" "this" {
   }
 
   dynamic "category" {
-    for_each = lookup(var.sentinel_metadata[count.index], "category") == null ? [] : ["category"]
+    for_each = lookup(var.sentinel_metadata[count.index], "category") == null ? [] : [""]
     content {
       domains   = lookup(category.value, "domains")
       verticals = lookup(category.value, "verticals")
@@ -594,16 +510,13 @@ resource "azurerm_sentinel_metadata" "this" {
 }
 
 resource "azurerm_sentinel_threat_intelligence_indicator" "this" {
-  count             = length(var.threat_intelligence_indicator)
-  display_name      = lookup(var.threat_intelligence_indicator[count.index], "display_name")
-  pattern           = lookup(var.threat_intelligence_indicator[count.index], "pattern")
-  pattern_type      = lookup(var.threat_intelligence_indicator[count.index], "pattern_type")
-  source            = lookup(var.threat_intelligence_indicator[count.index], "source")
-  validate_from_utc = lookup(var.threat_intelligence_indicator[count.index], "validate_from_utc")
-  workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.threat_intelligence_indicator[count.index], "workspace_id"))
-  )
+  count               = length(var.threat_intelligence_indicator)
+  display_name        = lookup(var.threat_intelligence_indicator[count.index], "display_name")
+  pattern             = lookup(var.threat_intelligence_indicator[count.index], "pattern")
+  pattern_type        = lookup(var.threat_intelligence_indicator[count.index], "pattern_type")
+  source              = lookup(var.threat_intelligence_indicator[count.index], "source")
+  validate_from_utc   = lookup(var.threat_intelligence_indicator[count.index], "validate_from_utc")
+  workspace_id        = data.azurerm_log_analytics_workspace.this.id
   confidence          = lookup(var.threat_intelligence_indicator[count.index], "confidence")
   created_by          = lookup(var.threat_intelligence_indicator[count.index], "created_by")
   description         = lookup(var.threat_intelligence_indicator[count.index], "description")
@@ -618,7 +531,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "this" {
 
 
   dynamic "external_reference" {
-    for_each = lookup(var.threat_intelligence_indicator[count.index], "external_reference") == null ? [] : ["external_reference"]
+    for_each = lookup(var.threat_intelligence_indicator[count.index], "external_reference") == null ? [] : [""]
     content {
       description = lookup(external_reference.value, "description")
       hashes      = lookup(external_reference.value, "hashes")
@@ -628,7 +541,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "this" {
   }
 
   dynamic "granular_marking" {
-    for_each = lookup(var.threat_intelligence_indicator[count.index], "granular_marking") == null ? [] : ["granular_marking"]
+    for_each = lookup(var.threat_intelligence_indicator[count.index], "granular_marking") == null ? [] : [""]
     content {
       language    = lookup(granular_marking.value, "language")
       marking_ref = lookup(granular_marking.value, "marking_ref")
@@ -637,7 +550,7 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "this" {
   }
 
   dynamic "kill_chain_phase" {
-    for_each = lookup(var.threat_intelligence_indicator[count.index], "kill_chain_phase_name") == null ? [] : ["kill_chain_phase"]
+    for_each = lookup(var.threat_intelligence_indicator[count.index], "kill_chain_phase_name") == null ? [] : [""]
     content {
       name = lookup(kill_chain_phase.value, "kill_chain_phase_name")
     }
@@ -645,17 +558,14 @@ resource "azurerm_sentinel_threat_intelligence_indicator" "this" {
 }
 
 resource "azurerm_sentinel_watchlist" "this" {
-  count           = length(var.sentinel_watchlist)
-  display_name    = lookup(var.sentinel_watchlist[count.index], "display_name")
-  item_search_key = lookup(var.sentinel_watchlist[count.index], "item_search_key")
-  log_analytics_workspace_id = try(
-    data.azurerm_log_analytics_workspace.this.id,
-    element(module.log_analytics.*.workspace_id, lookup(var.sentinel_watchlist[count.index], "workspace_id"))
-  )
-  name             = lookup(var.sentinel_watchlist[count.index], "name")
-  default_duration = lookup(var.sentinel_watchlist[count.index], "default_duration")
-  description      = lookup(var.sentinel_watchlist[count.index], "description")
-  labels           = lookup(var.sentinel_watchlist[count.index], "labels")
+  count                      = length(var.sentinel_watchlist)
+  display_name               = lookup(var.sentinel_watchlist[count.index], "display_name")
+  item_search_key            = lookup(var.sentinel_watchlist[count.index], "item_search_key")
+  log_analytics_workspace_id = data.azurerm_log_analytics_workspace.this.id
+  name                       = lookup(var.sentinel_watchlist[count.index], "name")
+  default_duration           = lookup(var.sentinel_watchlist[count.index], "default_duration")
+  description                = lookup(var.sentinel_watchlist[count.index], "description")
+  labels                     = lookup(var.sentinel_watchlist[count.index], "labels")
 }
 
 resource "azurerm_sentinel_watchlist_item" "this" {

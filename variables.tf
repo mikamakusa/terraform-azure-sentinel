@@ -45,53 +45,12 @@ variable "azurerm_sentinel_alert_rule_template_name" {
   default = null
 }
 
-## LOG ANALYTICS
-
-variable "workspace" {
-  type        = any
-  default     = []
-  description = <<EOF
-workspace = [{
-    id                                 = number
-    name                               = string
-    allow_resource_only_permissions    = optional(bool)
-    local_authentication_disabled      = optional(bool)
-    sku                                = optional(string)
-    retention_in_days                  = optional(number)
-    daily_quota_gb                     = optional(number)
-    cmk_for_query_forced               = optional(bool)
-    internet_ingestion_enabled         = optional(bool)
-    internet_query_enabled             = optional(bool)
-    reservation_capacity_in_gb_per_day = optional(number)
-    tags                               = optional(map(string))
-}]
-EOF
-}
-
-variable "solution" {
-  type        = any
-  default     = []
-  description = <<EOF
-solution = [{
-    id            = number
-    solution_name = string
-    workspace_id  = any
-    tags          = optional(map(string))
-    plan = list(object({
-      product        = string
-      publisher      = string
-      promotion_code = optional(string)
-    }))
-}]
-EOF
-}
-
 ## SENTINEL
 
 variable "sentinel_onboarding" {
   type = list(object({
-    id                           = number
-    workspace_id                 = any
+    id                           = string
+    workspace_id                 = string
     customer_managed_key_enabled = optional(bool)
   }))
   default = []
@@ -99,9 +58,9 @@ variable "sentinel_onboarding" {
 
 variable "machine_learning_behavior_analytics" {
   type = list(object({
-    id                       = number
+    id                       = string
     alert_rule_template_guid = string
-    workspace_id             = any
+    workspace_id             = string
     name                     = string
     enabled                  = optional(bool)
   }))
@@ -110,23 +69,28 @@ variable "machine_learning_behavior_analytics" {
 
 variable "alert_rule_anomaly" {
   type = list(object({
-    id           = number
+    id           = string
     enabled      = bool
-    workspace_id = any
+    workspace_id = string
     mode         = string
     name         = optional(string)
     display_name = optional(string)
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_anomaly : true if contains(["Production", "Flighting"], rule.mode)])
+    error_message = "Mode of the Built-in Anomaly Alert Rule. Possible Values are Production and Flighting."
+  }
 }
 
 variable "alert_rule_anomaly_duplicate" {
   type = list(object({
-    id               = number
-    built_in_rule_id = any
+    id               = string
+    built_in_rule_id = string
     display_name     = string
     enabled          = bool
-    workspace_id     = any
+    workspace_id     = string
     mode             = string
     multi_select_observation = optional(list(object({
       name   = string
@@ -147,12 +111,17 @@ variable "alert_rule_anomaly_duplicate" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_anomaly_duplicate : true if contains(["Production", "Flighting"], rule.mode)])
+    error_message = "Mode of the Built-in Anomaly Alert Rule. Possible Values are Production and Flighting."
+  }
 }
 
 variable "alert_rule_fusion" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     enabled      = optional(bool)
     source = optional(list(object({
       name    = string
@@ -169,9 +138,9 @@ variable "alert_rule_fusion" {
 
 variable "ms_security_incident" {
   type = list(object({
-    id                          = number
+    id                          = string
     display_name                = string
-    workspace_id                = any
+    workspace_id                = string
     name                        = string
     product_filter              = string
     severity_filter             = list(string)
@@ -181,13 +150,23 @@ variable "ms_security_incident" {
     display_name_exclude_filter = optional(list(string))
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for incident in var.ms_security_incident : true if contains(["High", "Medium", "Low", "Informational"], incident.severity_filter)])
+    error_message = "Only create incidents from alerts when alert severity level is contained in this list. Possible values are High, Medium, Low and Informational."
+  }
+
+  validation {
+    condition     = alltrue([for incident in var.ms_security_incident : true if contains(["Azure Active Directory Identity Protection", "Azure Advanced Threat Protection", "Azure Security Center", "Azure Security Center for IoT", "Microsoft Cloud App Security", "Microsoft Defender Advanced Threat Protection", "Office 365 Advanced Threat Protection"], incident.product_filter)])
+    error_message = "The Microsoft Security Service from where the alert will be generated. Possible values are Azure Active Directory Identity Protection, Azure Advanced Threat Protection, Azure Security Center, Azure Security Center for IoT, Microsoft Cloud App Security, Microsoft Defender Advanced Threat Protection and Office 365 Advanced Threat Protection."
+  }
 }
 
 variable "alert_rule_nrt" {
   type = list(object({
-    id                                  = number
+    id                                  = string
     display_name                        = string
-    workspace_id                        = any
+    workspace_id                        = string
     name                                = string
     query                               = string
     severity                            = string
@@ -232,13 +211,23 @@ variable "alert_rule_nrt" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_nrt : true if contains(["High", "Medium", "Low", "Informational"], rule.severity)])
+    error_message = "The alert severity of this Sentinel NRT Alert Rule. Possible values are High, Medium, Low and Informational."
+  }
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_nrt : true if contains(["Collection", "CommandAndControl", "CredentialAccess", "DefenseEvasion", "Discovery", "Execution", "Exfiltration", "Impact", "ImpairProcessControl", "InhibitResponseFunction", "InitialAccess", "LateralMovement", "Persistence", "PreAttack", "PrivilegeEscalation", "Reconnaissance", "ResourceDevelopment"], rule.tactics)])
+    error_message = "A list of categories of attacks by which to classify the rule. Possible values are Collection, CommandAndControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Impact, ImpairProcessControl, InhibitResponseFunction, InitialAccess, LateralMovement, Persistence, PreAttack, PrivilegeEscalation, Reconnaissance and ResourceDevelopment."
+  }
 }
 
 variable "alert_rule_scheduled" {
   type = list(object({
-    id                                  = number
+    id                                  = string
     display_name                        = string
-    workspace_id                        = any
+    workspace_id                        = string
     name                                = string
     query                               = string
     severity                            = string
@@ -252,6 +241,8 @@ variable "alert_rule_scheduled" {
     techniques                          = optional(list(string))
     event_grouping_aggregation_method   = optional(string)
     sentinel_entity_mapping_column_name = optional(string)
+    trigger_operator                    = optional(string)
+    trigger_threshold                   = optional(number)
     alert_details_override = optional(list(object({
       description_format   = optional(string)
       display_name_format  = optional(string)
@@ -283,12 +274,27 @@ variable "alert_rule_scheduled" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for incident in var.alert_rule_scheduled : true if contains(["High", "Medium", "Low", "Informational"], incident.severity)])
+    error_message = "Only create incidents from alerts when alert severity level is contained in this list. Possible values are High, Medium, Low and Informational."
+  }
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_scheduled : true if contains(["Collection", "CommandAndControl", "CredentialAccess", "DefenseEvasion", "Discovery", "Execution", "Exfiltration", "Impact", "ImpairProcessControl", "InhibitResponseFunction", "InitialAccess", "LateralMovement", "Persistence", "PreAttack", "PrivilegeEscalation", "Reconnaissance", "ResourceDevelopment"], rule.tactics)])
+    error_message = "A list of categories of attacks by which to classify the rule. Possible values are Collection, CommandAndControl, CredentialAccess, DefenseEvasion, Discovery, Execution, Exfiltration, Impact, ImpairProcessControl, InhibitResponseFunction, InitialAccess, LateralMovement, Persistence, PreAttack, PrivilegeEscalation, Reconnaissance and ResourceDevelopment."
+  }
+
+  validation {
+    condition     = alltrue([for rule in var.alert_rule_scheduled : true if contains(["Equal", "GreaterThan", "LessThan", "NotEqual"], rule.trigger_operator)])
+    error_message = "The alert trigger operator, combined with trigger_threshold, setting alert threshold of this Sentinel Scheduled Alert Rule. Possible values are Equal, GreaterThan, LessThan, NotEqual. Defaults to GreaterThan."
+  }
 }
 
 variable "alert_rule_threat_intelligence" {
   type = list(object({
-    id                       = number
-    workspace_id             = any
+    id                       = string
+    workspace_id             = string
     alert_rule_template_guid = any
     name                     = string
     enabled                  = optional(bool)
@@ -298,9 +304,9 @@ variable "alert_rule_threat_intelligence" {
 
 variable "automation_rule" {
   type = list(object({
-    id             = number
+    id             = string
     display_name   = string
-    workspace_id   = any
+    workspace_id   = string
     name           = string
     order          = number
     condition_json = optional(string)
@@ -324,13 +330,18 @@ variable "automation_rule" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for rule in var.automation_rule : true if rule.order >= 1 && rule.order <= 1000])
+    error_message = "The order of this Sentinel Automation Rule. Possible values varies between 1 and 1000."
+  }
 }
 
 variable "data_connector_cloud_trail" {
   type = list(object({
-    id           = number
+    id           = string
     aws_role_arn = string
-    workspace_id = any
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -338,10 +349,10 @@ variable "data_connector_cloud_trail" {
 
 variable "data_connector_s3" {
   type = list(object({
-    id                = number
+    id                = string
     aws_role_arn      = string
     destination_table = string
-    workspace_id      = any
+    workspace_id      = string
     name              = string
     sqs_urls          = list(string)
   }))
@@ -350,8 +361,8 @@ variable "data_connector_s3" {
 
 variable "data_connect_aad" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -359,8 +370,8 @@ variable "data_connect_aad" {
 
 variable "data_connector_azure_security_center" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -368,8 +379,8 @@ variable "data_connector_azure_security_center" {
 
 variable "data_connector_iot" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -377,8 +388,8 @@ variable "data_connector_iot" {
 
 variable "data_connector_cloud_app_security" {
   type = list(object({
-    id                     = number
-    workspace_id           = any
+    id                     = string
+    workspace_id           = string
     name                   = string
     alerts_enabled         = optional(bool)
     discovery_logs_enabled = optional(bool)
@@ -388,8 +399,8 @@ variable "data_connector_cloud_app_security" {
 
 variable "data_connector_dynamics_365" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -397,8 +408,8 @@ variable "data_connector_dynamics_365" {
 
 variable "data_connector_defender_advanced_threat_protection" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -406,8 +417,8 @@ variable "data_connector_defender_advanced_threat_protection" {
 
 variable "data_connector_azure_advanced_threat_protection" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -415,8 +426,8 @@ variable "data_connector_azure_advanced_threat_protection" {
 
 variable "data_connector_azure_advanced_threat_intelligence" {
   type = list(object({
-    id                                           = number
-    workspace_id                                 = any
+    id                                           = string
+    workspace_id                                 = string
     name                                         = string
     microsoft_emerging_threat_feed_lookback_date = optional(string)
   }))
@@ -425,8 +436,8 @@ variable "data_connector_azure_advanced_threat_intelligence" {
 
 variable "data_connector_microsoft_threat_protection" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -434,8 +445,8 @@ variable "data_connector_microsoft_threat_protection" {
 
 variable "data_connector_office_365" {
   type = list(object({
-    id                 = number
-    workspace_id       = any
+    id                 = string
+    workspace_id       = string
     name               = string
     teams_enabled      = optional(bool)
     sharepoint_enabled = optional(bool)
@@ -446,8 +457,8 @@ variable "data_connector_office_365" {
 
 variable "data_connector_office_365_project" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -455,8 +466,8 @@ variable "data_connector_office_365_project" {
 
 variable "data_connector_office_atp" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -464,8 +475,8 @@ variable "data_connector_office_atp" {
 
 variable "data_connector_office_irm" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -473,8 +484,8 @@ variable "data_connector_office_irm" {
 
 variable "data_connector_office_power_bi" {
   type = list(object({
-    id           = number
-    workspace_id = any
+    id           = string
+    workspace_id = string
     name         = string
   }))
   default = []
@@ -482,8 +493,8 @@ variable "data_connector_office_power_bi" {
 
 variable "data_connector_threat_intelligence_taxii" {
   type = list(object({
-    id                = number
-    workspace_id      = any
+    id                = string
+    workspace_id      = string
     name              = string
     api_root_url      = string
     collection_id     = string
@@ -494,15 +505,20 @@ variable "data_connector_threat_intelligence_taxii" {
     lookback_date     = optional(string)
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for taxii in var.data_connector_threat_intelligence_taxii : true if contains(["OnceAMinute", "OnceAnHour", "OnceADay"], taxii.polling_frequency)])
+    error_message = "The polling frequency for the TAXII server. Possible values are OnceAMinute, OnceAnHour and OnceADay. Defaults to OnceAnHour."
+  }
 }
 
 variable "sentinel_metadata" {
   type = list(object({
-    id                         = number
-    alert_id                   = any
+    id                         = string
+    alert_id                   = string
     kind                       = string
     name                       = string
-    workspace_id               = any
+    workspace_id               = string
     content_schema_version     = optional(string)
     custom_version             = optional(string)
     dependency                 = optional(string)
@@ -536,17 +552,27 @@ variable "sentinel_metadata" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for metadata in var.sentinel_metadata : true if contains(["AnalyticsRule", "AnalyticsRuleTemplate", "AutomationRule", "AzureFunction", "DataConnector", "DataType", "HuntingQuery", "InvestigationQuery", "LogicAppsCustomConnector", "Parser", "Playbook", "PlaybookTemplate", "Solution", "Watchlist", "WatchlistTemplate", "Workbook", "WorkbookTemplate"], metadata.kind)])
+    error_message = "The kind of content the metadata is for. Possible values are AnalyticsRule, AnalyticsRuleTemplate, AutomationRule, AzureFunction, DataConnector, DataType, HuntingQuery, InvestigationQuery, LogicAppsCustomConnector, Parser, Playbook, PlaybookTemplate, Solution, Watchlist, WatchlistTemplate, Workbook and WorkbookTemplate."
+  }
+
+  validation {
+    condition     = alltrue([for metadata in var.sentinel_metadata : true if contains(["Reconnaissance", "ResourceDevelopment", "InitialAccess", "Execution", "Persistence", "PrivilegeEscalation", "DefenseEvasion", "CredentialAccess", "Discovery", "LateralMovement", "Collection", "CommandAndControl", "Exfiltration", "Impact", "ImpairProcessControl", "InhibitResponseFunction"], metadata.threat_analysis_tactics)])
+    error_message = "Specifies a list of tactics the resource covers. Possible values are Reconnaissance, ResourceDevelopment, InitialAccess, Execution, Persistence, PrivilegeEscalation, DefenseEvasion, CredentialAccess, Discovery, LateralMovement, Collection, CommandAndControl, Exfiltration, Impact, ImpairProcessControl and InhibitResponseFunction."
+  }
 }
 
 variable "threat_intelligence_indicator" {
   type = list(object({
-    id                    = number
+    id                    = string
     display_name          = string
     pattern               = string
     pattern_type          = string
     source                = string
     validate_from_utc     = string
-    workspace_id          = any
+    workspace_id          = string
     confidence            = optional(number)
     created_by            = optional(string)
     description           = optional(string)
@@ -572,14 +598,19 @@ variable "threat_intelligence_indicator" {
     })), [])
   }))
   default = []
+
+  validation {
+    condition     = alltrue([for indicator in var.threat_intelligence_indicator : true if contains(["domain-name", "file", "ipv4-addr", "ipv6-addr", "url"], indicator.pattern_type)])
+    error_message = "The type of pattern used by the Threat Intelligence Indicator. Possible values are domain-name, file, ipv4-addr, ipv6-addr and url."
+  }
 }
 
 variable "sentinel_watchlist" {
   type = list(object({
-    id               = number
+    id               = string
     display_name     = string
     item_search_key  = string
-    workspace_id     = any
+    workspace_id     = string
     name             = string
     default_duration = optional(string)
     description      = optional(string)
@@ -590,9 +621,9 @@ variable "sentinel_watchlist" {
 
 variable "watchlist_items" {
   type = list(object({
-    id           = number
+    id           = string
     properties   = map(string)
-    watchlist_id = any
+    watchlist_id = string
     name         = optional(string)
   }))
   default = []
